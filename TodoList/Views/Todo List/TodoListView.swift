@@ -24,44 +24,10 @@ struct TodoListView: View {
                     ForEach(items) { item in
                         Text(item.name)
                     }
-                    .onDelete(perform: deleteItems)
+                    .onDelete(perform: viewModel.editMode.isEditing ? deleteItems : deleteItems)
                 }
                 .toolbar {
-                    if viewModel.editMode.isEditing {
-                        ToolbarItem(placement: .topBarLeading) {
-                            Button(role: .destructive) {
-                                handleDeleteSelectedItems()
-                            } label: {
-                                Label("Delete Selected Items", systemImage: "trash")
-                            }
-                            .tint(.red)
-                        }
-                        
-                        ToolbarItem(placement: .topBarLeading) {
-                            Button(viewModel.allSelected ? "Unselect All" : "Select All") {
-                                if viewModel.allSelected {
-                                    viewModel.unselectAll()
-                                } else {
-                                    viewModel.selectAll()
-                                }
-                            }
-                        }
-                    } else {
-                        ToolbarItem {
-                            Button(action: {}) {
-                                Label("Add Item", systemImage: "plus")
-                            }
-                        }
-                    }
-                    
-                    ToolbarItem(placement: .topBarTrailing) {
-                        Button(viewModel.editMode.isEditing ? "Done" : "Edit") {
-                            withAnimation {
-                                viewModel.editMode = viewModel.editMode.isEditing ? .inactive : .active
-                            }
-                        }
-                    }
-                    
+                    toolbar
                 }
             case .error(let error):
                 Text("Something went wrong.")
@@ -73,20 +39,58 @@ struct TodoListView: View {
         .environment(\.editMode, $viewModel.editMode)
     }
     
-    private func handleDeleteSelectedItems() {
+    @ToolbarContentBuilder var toolbar: some ToolbarContent {
+        if viewModel.editMode.isEditing {
+            ToolbarItem(placement: .topBarLeading) {
+                Button(role: .destructive) {
+                    deleteSelectedItems()
+                } label: {
+                    Label("Delete Selected Items", systemImage: "trash")
+                }
+                .tint(.red)
+            }
+            
+            ToolbarItem(placement: .topBarLeading) {
+                Button(viewModel.allSelected ? "Deselect All" : "Select All") {
+                    if viewModel.allSelected {
+                        viewModel.deselectAll()
+                    } else {
+                        viewModel.selectAll()
+                    }
+                }
+            }
+        } else {
+            ToolbarItem {
+                Button(action: {}) {
+                    Label("Add Item", systemImage: "plus")
+                }
+            }
+        }
+        
+        ToolbarItem(placement: .topBarTrailing) {
+            Button(viewModel.editMode.isEditing ? "Done" : "Edit") {
+                withAnimation {
+                    viewModel.toggleEditing()
+                }
+            }
+        }
+        
+    }
+    
+    private func deleteSelectedItems() {
         Task {
             do {
-                try await viewModel.onDeleteSelectedItems()
+                try await viewModel.deleteSelectedItems()
             } catch {
                 // TODO: handle error
             }
         }
     }
     
-    private func handleDeleteAllItems() {
+    private func deleteAllItems() {
         Task {
             do {
-                try await viewModel.onDeleteSelectedItems()
+                try await viewModel.deleteSelectedItems()
             } catch {
                 // TODO: handle error
             }
@@ -94,17 +98,11 @@ struct TodoListView: View {
     }
     
     private func deleteItems(offsets: IndexSet) {
-        guard case .loaded(let items) = viewModel.viewState else { return }
-        
-        withAnimation {
-            let items = offsets.map { items[$0] }
-            
-            Task {
-                do {
-                    try await viewModel.onDelete(items: items)
-                } catch {
-                    // TODO: propogate error to view
-                }
+        Task {
+            do {
+                try await viewModel.deleteItems(at: offsets)
+            } catch {
+                // TODO: handle error
             }
         }
     }

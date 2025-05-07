@@ -38,13 +38,17 @@ import SwiftUI
         }
     }
     
-    func onDelete(items: [TodoItem]) async throws {
-        try await repository.deleteTodoItems(items)
+    func deleteItems(at offsets: IndexSet) async throws {
+        guard case .loaded(let allItems) = viewState else { return }
         
+        let itemsToDelete = offsets.map { allItems[$0] }
+        
+        try await repository.deleteTodoItems(itemsToDelete)
+
         await loadTodoItems()
     }
     
-    func onDeleteSelectedItems() async throws {
+    func deleteSelectedItems() async throws {
         guard case .loaded(let items) = viewState else {
             return
         }
@@ -60,6 +64,10 @@ import SwiftUI
         await loadTodoItems()
     }
     
+    func toggleEditing() {
+        editMode = editMode.isEditing ? .inactive : .active
+    }
+    
     func selectAll() {
         guard case .loaded(let items) = viewState else {
             return
@@ -68,7 +76,7 @@ import SwiftUI
         selectedItems = Set(items.map(\.id))
     }
     
-    func unselectAll() {
+    func deselectAll() {
         selectedItems = Set()
     }
 }

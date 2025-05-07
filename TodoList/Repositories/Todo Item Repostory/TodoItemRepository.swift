@@ -10,7 +10,6 @@ import Foundation
 protocol TodoItemRepository {
     func getTodoItems() async throws -> [TodoItem]
     func deleteTodoItems(_ items: [TodoItem]) async throws
-    func deleteAllTodoItems() async throws
 }
 
 extension TodoItemRepository {

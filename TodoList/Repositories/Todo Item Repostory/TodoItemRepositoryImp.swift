@@ -38,16 +38,4 @@ class TodoItemRepositoryImp: TodoItemRepository {
             try context.executeAndMergeChanges(using: deleteRequest)
         }
     }
-    
-    func deleteAllTodoItems() async throws {
-        let context = coreDataManager.container.viewContext
-        
-        return try await context.perform {
-            let fetchRequest = TodoItem.fetchRequest() as NSFetchRequest<NSFetchRequestResult>
-                        
-            let deleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
-            
-            try context.executeAndMergeChanges(using: deleteRequest)
-        }
-    }
 }
