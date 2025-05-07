@@ -1,0 +1,59 @@
+{
+  "configurations" : [
+    {
+      "id" : "A328C59B-CBDE-497F-A97A-3F9E9AD5BDE6",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "commandLineArgumentEntries" : [
+      {
+        "argument" : "-com.apple.CoreData.SQLDebug 1 "
+      },
+      {
+        "argument" : "-com.apple.CoreData.ConcurrencyDebug 1 "
+      }
+    ],
+    "environmentVariableEntries" : [
+      {
+        "key" : "SQLITE_ENABLE_THREAD_ASSERTIONS 1\n",
+        "value" : ""
+      },
+      {
+        "key" : "SQLITE_AUTO_TRACE 1\n",
+        "value" : ""
+      },
+      {
+        "key" : "SQLITE_ENABLE_FILE_ASSERTIONS 1\n",
+        "value" : ""
+      }
+    ],
+    "targetForVariableExpansion" : {
+      "containerPath" : "container:TodoList.xcodeproj",
+      "identifier" : "E0B9E5142DC98D4A00F52B56",
+      "name" : "TodoList"
+    }
+  },
+  "testTargets" : [
+    {
+      "parallelizable" : true,
+      "target" : {
+        "containerPath" : "container:TodoList.xcodeproj",
+        "identifier" : "E0B9E5262DC98D4D00F52B56",
+        "name" : "TodoListTests"
+      }
+    },
+    {
+      "parallelizable" : true,
+      "target" : {
+        "containerPath" : "container:TodoList.xcodeproj",
+        "identifier" : "E0B9E5302DC98D4D00F52B56",
+        "name" : "TodoListUITests"
+      }
+    }
+  ],
+  "version" : 1
+}

@@ -39,7 +39,9 @@ import SwiftUI
     }
     
     func deleteItems(at offsets: IndexSet) async throws {
-        guard case .loaded(let allItems) = viewState else { return }
+        guard case .loaded(let allItems) = viewState, !offsets.isEmpty else {
+            return
+        }
                 
         let itemsToDelete = offsets.map { allItems[$0] }
         
@@ -49,7 +51,7 @@ import SwiftUI
     }
     
     func deleteSelectedItems() async throws {
-        guard case .loaded(let items) = viewState else {
+        guard case .loaded(let items) = viewState, !selectedItems.isEmpty else {
             return
         }
 
@@ -75,6 +77,6 @@ import SwiftUI
     }
     
     func deselectAll() {
-        selectedItems = Set()
+        selectedItems.removeAll()
     }
 }
