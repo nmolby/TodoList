@@ -11,7 +11,7 @@ extension String {
     static let todoItem = "TodoItem"
 }
 
-@objc final class TodoItem: NSManagedObject {
+@objc public final class TodoItem: NSManagedObject {
 
     @nonobjc public class func fetchRequest() -> NSFetchRequest<TodoItem> {
         return NSFetchRequest<TodoItem>(entityName: "TodoItem")

@@ -40,7 +40,7 @@ import SwiftUI
     
     func deleteItems(at offsets: IndexSet) async throws {
         guard case .loaded(let allItems) = viewState else { return }
-        
+                
         let itemsToDelete = offsets.map { allItems[$0] }
         
         try await repository.deleteTodoItems(itemsToDelete)
@@ -53,10 +53,8 @@ import SwiftUI
             return
         }
 
-        let todoItems = selectedItems.compactMap { id in
-            items.first(where: {
-                $0.id == id
-            })
+        let todoItems = items.filter {
+            selectedItems.contains($0.id)
         }
         
         try await repository.deleteTodoItems(todoItems)
