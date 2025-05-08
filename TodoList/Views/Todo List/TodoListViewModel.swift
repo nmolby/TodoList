@@ -12,18 +12,20 @@ import SwiftUI
     let repository: any TodoItemRepository
     var errorStore: any ErrorStore
     
+
     var viewState: TodoListViewState {
         if !firstLoadFinished {
             return .loading
         } else if repository.todoItems.isEmpty {
             return .empty
         } else {
-            return .loaded(items: repository.todoItems)
+            return .loaded(items: sort(items: repository.todoItems))
         }
     }
     
     var firstLoadFinished: Bool = false
     var addingNewTodoItem: Bool = false
+    var sortMethod = SortMethod.newestFirst
 
     var selectedItems = Set<String>()
     var editMode = EditMode.inactive
@@ -41,6 +43,15 @@ import SwiftUI
         }
         
         return selectedItems.count == items.count
+    }
+    
+    var shouldShowEditButton: Bool {
+        switch viewState {
+        case .loading, .empty:
+            return false
+        case .loaded(let items):
+            return true
+        }
     }
     
     // MARK: Mutating global state
@@ -90,6 +101,14 @@ import SwiftUI
         }
     }
     
+    func loadSampleTodos() async {
+        do {
+            try await repository.loadSampleTodos()
+        } catch {
+            errorStore.errorString = "Loading sample to-dos failed. Please try again."
+        }
+    }
+    
     // MARK: Mutating local state
     
     func toggleEditing() {
@@ -114,5 +133,26 @@ import SwiftUI
     
     func createAddNewTodoItemViewModel() -> AddTodoItemViewModel {
         return .init(todoItemRepository: repository, errorStore: errorStore)
+    }
+    
+    func sort(items: [TodoItem]) -> [TodoItem] {
+        switch sortMethod {
+        case .newestFirst:
+            return items.sorted {
+                $0.creationDate > $1.creationDate
+            }
+        case .oldestFirst:
+            return items.sorted {
+                $0.creationDate < $1.creationDate
+            }
+        case .alphabeticalDescending:
+            return items.sorted {
+                $0.name.compare($1.name, options: .caseInsensitive) == .orderedDescending
+            }
+        case .alphabeticalAscending:
+            return items.sorted {
+                $0.name.compare($1.name, options: .caseInsensitive) == .orderedAscending
+            }
+        }
     }
 }

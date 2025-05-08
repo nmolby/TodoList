@@ -53,5 +53,5 @@ struct AddTodoItemView: View {
 }
 
 #Preview {
-    AddTodoItemView(viewModel: .init(todoItemRepository: TodoItemRepositoryImp(coreDataManager: .preview), errorStore: ErrorStoreImp()))
+    AddTodoItemView(viewModel: .init(todoItemRepository: TodoItemRepositoryImp(coreDataManager: .preview, apiClient: APIClientImp(baseURL: .init(string: "https://jsonplaceholder.typicode.com")!)), errorStore: ErrorStoreImp()))
 }

@@ -9,20 +9,26 @@ import SwiftUI
 import CoreData
 
 struct ContentView: View {
-    @State var todoItemRepository = TodoItemRepositoryImp(coreDataManager: .preview)
-    @State var errorRepository = ErrorStoreImp()
+    @State var dependencyStore = DependencyStoreImp()
     
     var body: some View {
         NavigationStack {
-            TodoListView(viewModel: .init(repository: todoItemRepository, errorStore: errorRepository))
+            TodoListView(viewModel: .init(repository: dependencyStore.todoItemRepository, errorStore: dependencyStore.errorStore))
         }
         .overlay(alignment: .bottom) {
-            if let errorString = errorRepository.errorString {
+            if let errorString = dependencyStore.errorStore.errorString {
                 ErrorView(errorString: errorString)
                     .transition(.asymmetric(insertion: .push(from: .bottom), removal: .push(from: .top)) )
             }
         }
-        .animation(.default, value: errorRepository.errorString == nil)
+        .animation(.default, value: dependencyStore.errorStore.errorString == nil)
+        .onAppear {
+            do {
+                try dependencyStore.todoItemRepository.loadInitialItems()
+            } catch {
+                dependencyStore.errorStore.errorString = "Something went wrong loading your todos. Try again later."
+            }
+        }
     }
 }
 

@@ -24,12 +24,14 @@ struct TodoListEmptyView: View {
             }
             
             Button("Load sample To-Dos") {
-                
+                Task {
+                    await viewModel.loadSampleTodos()
+                }
             }
         }
     }
 }
 
 #Preview {
-    TodoListEmptyView(viewModel: .constant(.init(repository: TodoItemRepositoryImp(coreDataManager: .preview), errorStore: ErrorStoreImp())))
+    TodoListEmptyView(viewModel: .constant(.init(repository: TodoItemRepositoryImp.preview, errorStore: ErrorStoreImp())))
 }

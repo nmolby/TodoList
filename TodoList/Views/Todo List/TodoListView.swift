@@ -19,6 +19,9 @@ struct TodoListView: View {
             switch viewModel.viewState {
             case .empty:
                 TodoListEmptyView(viewModel: $viewModel)
+                    .toolbar {
+                        toolbar
+                    }
             case .loading:
                 TodoListLoadingView()
             case .loaded(let items):
@@ -41,6 +44,7 @@ struct TodoListView: View {
             AddTodoItemView(viewModel: viewModel.createAddNewTodoItemViewModel())
         }
         .environment(\.editMode, $viewModel.editMode)
+        .navigationTitle("Todo List")
     }
     
     @ToolbarContentBuilder var toolbar: some ToolbarContent {
@@ -73,11 +77,34 @@ struct TodoListView: View {
                     Label("Add Item", systemImage: "plus")
                 }
             }
+            
+            ToolbarItem(placement: .topBarLeading) {
+                Menu {
+                    Picker("Sort by", selection: $viewModel.sortMethod) {
+                        ForEach(SortMethod.allCases, id: \.self) { option in
+                            Text(option.label)
+                                .tag(option)
+                        }
+                    }
+                } label: {
+                    Image(systemName: "arrow.up.arrow.down")
+                }
+            }
+            
+            ToolbarItem(placement: .topBarLeading) {
+                Button("Samples") {
+                    Task {
+                        await viewModel.loadSampleTodos()
+                    }
+                }
+            }
         }
         
-        ToolbarItem(placement: .topBarTrailing) {
-            Button(viewModel.editMode.isEditing ? "Done" : "Edit") {
-                viewModel.toggleEditing()
+        if viewModel.shouldShowEditButton {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button(viewModel.editMode.isEditing ? "Done" : "Edit") {
+                    viewModel.toggleEditing()
+                }
             }
         }
     }
@@ -90,5 +117,5 @@ struct TodoListView: View {
 }
 
 #Preview {
-    TodoListView(viewModel: .init(repository: TodoItemRepositoryImp(coreDataManager: .preview), errorStore: ErrorStoreImp()))
+    TodoListView(viewModel: .init(repository: TodoItemRepositoryImp.preview, errorStore: ErrorStoreImp()))
 }
