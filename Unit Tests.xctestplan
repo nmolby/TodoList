@@ -1,0 +1,24 @@
+{
+  "configurations" : [
+    {
+      "id" : "89C39DC9-05D2-4080-9092-7FB4A5F0E649",
+      "name" : "Configuration 1",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "testTimeoutsEnabled" : true
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:TodoList.xcodeproj",
+        "identifier" : "E0B9E5262DC98D4D00F52B56",
+        "name" : "TodoListTests"
+      }
+    }
+  ],
+  "version" : 1
+}

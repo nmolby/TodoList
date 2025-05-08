@@ -10,14 +10,30 @@ import SwiftUI
 
 @MainActor @Observable class TodoListViewModel {
     let repository: any TodoItemRepository
+    var errorStore: any ErrorStore
+    
+    var viewState: TodoListViewState {
+        if !firstLoadFinished {
+            return .loading
+        } else if repository.todoItems.isEmpty {
+            return .empty
+        } else {
+            return .loaded(items: repository.todoItems)
+        }
+    }
+    
+    var firstLoadFinished: Bool = false
+    var addingNewTodoItem: Bool = false
 
-    var viewState = TodoListViewState.loading
     var selectedItems = Set<String>()
     var editMode = EditMode.inactive
     
-    init(repository: TodoItemRepository) {
+    init(repository: any TodoItemRepository, errorStore: any ErrorStore) {
         self.repository = repository
+        self.errorStore = errorStore
     }
+    
+    // MARK: Computed Properties
     
     var allSelected: Bool {
         guard case .loaded(let items) = viewState else {
@@ -27,42 +43,54 @@ import SwiftUI
         return selectedItems.count == items.count
     }
     
-    func loadTodoItems() async {
-        do {
-            let items = try await repository.getTodoItems().sorted { item1, item2 in
-                return item1.creationDate < item2.creationDate
-            }
-            viewState = .loaded(items: items)
-        } catch {
-            viewState = .error(error)
+    // MARK: Mutating global state
+    
+    func refreshItems() async {
+        defer {
+            firstLoadFinished = true
         }
+        
+        do {
+            try await repository.refreshTodoItems()
+        } catch {
+            errorStore.errorString = "Loading to-dos failed. Please try again."
+        }
+        
     }
     
-    func deleteItems(at offsets: IndexSet) async throws {
+    func deleteItems(at offsets: IndexSet) async {
         guard case .loaded(let allItems) = viewState, !offsets.isEmpty else {
             return
         }
                 
         let itemsToDelete = offsets.map { allItems[$0] }
         
-        try await repository.deleteTodoItems(itemsToDelete)
-
-        await loadTodoItems()
+        do {
+            try await repository.deleteTodoItems(itemsToDelete)
+        } catch {
+            errorStore.errorString = "Deleting to-dos failed. Please try again."
+        }
     }
     
-    func deleteSelectedItems() async throws {
+    func deleteSelectedItems() async {
         guard case .loaded(let items) = viewState, !selectedItems.isEmpty else {
             return
         }
 
-        let todoItems = items.filter {
+        let itemsToDelete = items.filter {
             selectedItems.contains($0.id)
         }
         
-        try await repository.deleteTodoItems(todoItems)
-        
-        await loadTodoItems()
+        do {
+            try await repository.deleteTodoItems(itemsToDelete)
+            
+            editMode = .inactive
+        } catch {
+            errorStore.errorString = "Deleting to-dos failed. Please try again."
+        }
     }
+    
+    // MARK: Mutating local state
     
     func toggleEditing() {
         editMode = editMode.isEditing ? .inactive : .active
@@ -78,5 +106,13 @@ import SwiftUI
     
     func deselectAll() {
         selectedItems.removeAll()
+    }
+    
+    func addNewTodoItem() {
+        addingNewTodoItem = true
+    }
+    
+    func createAddNewTodoItemViewModel() -> AddTodoItemViewModel {
+        return .init(todoItemRepository: repository, errorStore: errorStore)
     }
 }

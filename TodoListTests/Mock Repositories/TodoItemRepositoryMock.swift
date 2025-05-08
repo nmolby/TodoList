@@ -6,22 +6,21 @@
 //
 
 import Foundation
-import TodoList
+@testable import TodoList
 
 class TodoItemRepositoryMock: TodoItemRepository {
-    
-    var getTodoItemsHelper: (() async throws -> [TodoList.TodoItem])? = nil
-    
-    func getTodoItems() async throws -> [TodoList.TodoItem] {
-        guard let getTodoItemsHelper else {
+    var refreshItemsHelper: (() async throws -> Void)? = nil
+
+    func refreshTodoItems() async throws {
+        guard let refreshItemsHelper else {
             throw TestError.responseNotSet
         }
         
-        return try await getTodoItemsHelper()
+        try await refreshTodoItems()
     }
     
     var deleteTodoItemsHelper: (([TodoList.TodoItem]) async throws -> Void)? = nil
-    
+
     func deleteTodoItems(_ items: [TodoList.TodoItem]) async throws {
         guard let deleteTodoItemsHelper else {
             throw TestError.responseNotSet
@@ -29,6 +28,6 @@ class TodoItemRepositoryMock: TodoItemRepository {
         
         return try await deleteTodoItemsHelper(items)
     }
-    
-    
+        
+    var todoItems: [TodoList.TodoItem] = []
 }

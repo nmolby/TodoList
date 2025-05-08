@@ -17,24 +17,28 @@ struct TodoListView: View {
     var body: some View {
         ZStack {
             switch viewModel.viewState {
+            case .empty:
+                TodoListEmptyView(viewModel: $viewModel)
             case .loading:
-                ProgressView()
+                TodoListLoadingView()
             case .loaded(let items):
                 List(selection: $viewModel.selectedItems) {
                     ForEach(items) { item in
                         Text(item.name)
                     }
-                    .onDelete(perform: viewModel.editMode.isEditing ? deleteItems : deleteItems)
+                    .onDelete(perform: deleteItems)
                 }
                 .toolbar {
                     toolbar
                 }
-            case .error(let error):
-                Text("Something went wrong.")
+                .animation(.default, value: viewModel.editMode)
             }
         }
         .task {
-            await viewModel.loadTodoItems()
+            await viewModel.refreshItems()
+        }
+        .sheet(isPresented: $viewModel.addingNewTodoItem) {
+            AddTodoItemView(viewModel: viewModel.createAddNewTodoItemViewModel())
         }
         .environment(\.editMode, $viewModel.editMode)
     }
@@ -43,7 +47,9 @@ struct TodoListView: View {
         if viewModel.editMode.isEditing {
             ToolbarItem(placement: .topBarLeading) {
                 Button(role: .destructive) {
-                    deleteSelectedItems()
+                    Task {
+                        await viewModel.deleteSelectedItems()
+                    }
                 } label: {
                     Label("Delete Selected Items", systemImage: "trash")
                 }
@@ -61,7 +67,9 @@ struct TodoListView: View {
             }
         } else {
             ToolbarItem {
-                Button(action: {}) {
+                Button {
+                    viewModel.addNewTodoItem()
+                } label: {
                     Label("Add Item", systemImage: "plus")
                 }
             }
@@ -69,45 +77,18 @@ struct TodoListView: View {
         
         ToolbarItem(placement: .topBarTrailing) {
             Button(viewModel.editMode.isEditing ? "Done" : "Edit") {
-                withAnimation {
-                    viewModel.toggleEditing()
-                }
-            }
-        }
-        
-    }
-    
-    private func deleteSelectedItems() {
-        Task {
-            do {
-                try await viewModel.deleteSelectedItems()
-            } catch {
-                // TODO: handle error
-            }
-        }
-    }
-    
-    private func deleteAllItems() {
-        Task {
-            do {
-                try await viewModel.deleteSelectedItems()
-            } catch {
-                // TODO: handle error
+                viewModel.toggleEditing()
             }
         }
     }
     
     private func deleteItems(offsets: IndexSet) {
         Task {
-            do {
-                try await viewModel.deleteItems(at: offsets)
-            } catch {
-                // TODO: handle error
-            }
+            await viewModel.deleteItems(at: offsets)
         }
     }
 }
 
 #Preview {
-    TodoListView(viewModel: .init(repository: TodoItemRepositoryImp(coreDataManager: .preview)))
+    TodoListView(viewModel: .init(repository: TodoItemRepositoryImp(coreDataManager: .preview), errorStore: ErrorStoreImp()))
 }

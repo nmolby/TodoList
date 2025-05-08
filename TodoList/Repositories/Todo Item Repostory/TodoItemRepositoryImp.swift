@@ -7,29 +7,36 @@
 
 import Foundation
 import CoreData
+import SwiftUI
 
+@Observable
 class TodoItemRepositoryImp: TodoItemRepository {
-
     let coreDataManager: CoreDataManager
     
     init(coreDataManager: CoreDataManager) {
         self.coreDataManager = coreDataManager
+        
+        Task {
+            try? await refreshTodoItems()
+        }
     }
     
-    func getTodoItems() async throws -> [TodoItem] {
+    func refreshTodoItems() async throws {
         let context = coreDataManager.container.viewContext
         
-        return try await context.perform {
-            let request = NSFetchRequest<TodoItem>(entityName: .todoItem)
+        todoItems = try await context.perform {
+            let request = NSFetchRequest<TodoItemEntity>(entityName: .todoItem)
             return try context.fetch(request)
+        }.map { entity in
+            entity.toTodoItem()
         }
     }
     
     func deleteTodoItems(_ items: [TodoItem]) async throws {
         let context = coreDataManager.container.viewContext
         
-        return try await context.perform {
-            let fetchRequest = TodoItem.fetchRequest() as NSFetchRequest<NSFetchRequestResult>
+        try await context.perform {
+            let fetchRequest = TodoItemEntity.fetchRequest() as NSFetchRequest<NSFetchRequestResult>
             
             fetchRequest.predicate = NSPredicate(format: "id IN %@", items.map(\.id))
             
@@ -37,5 +44,28 @@ class TodoItemRepositoryImp: TodoItemRepository {
             
             try context.executeAndMergeChanges(using: deleteRequest)
         }
+        
+        try await refreshTodoItems()
     }
+    
+    func addTodo(_ item: TodoItem) async throws {
+        let context = coreDataManager.container.viewContext
+
+        try await context.perform {
+            _ = TodoItemEntity(
+                context: context,
+                name: item.name,
+                id: item.id,
+                creationDate: item.creationDate,
+                editDate: item.editDate
+            )
+            
+            try context.save()
+        }
+
+        try await refreshTodoItems()
+    }
+    
+    
+    var todoItems: [TodoItem] = []
 }

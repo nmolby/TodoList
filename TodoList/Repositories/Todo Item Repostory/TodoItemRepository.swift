@@ -7,9 +7,12 @@
 
 import Foundation
 
-public protocol TodoItemRepository {
-    func getTodoItems() async throws -> [TodoItem]
-    func deleteTodoItems(_ items: [TodoItem]) async throws
+protocol TodoItemRepository {
+    @MainActor func refreshTodoItems() async throws
+    @MainActor func deleteTodoItems(_ items: [TodoItem]) async throws
+    @MainActor func addTodo(_ item: TodoItem) async throws
+    
+    var todoItems: [TodoItem] { get }
 }
 
 extension TodoItemRepository {
