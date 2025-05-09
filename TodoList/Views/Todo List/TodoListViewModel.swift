@@ -11,8 +11,21 @@ import SwiftUI
 @MainActor @Observable class TodoListViewModel {
     let repository: any TodoItemRepository
     var errorStore: any ErrorStore
+        
+    var addingNewTodoItem: Bool = false
+    var sortMethod = SortMethod.newestFirst
+    var selectedItems = Set<String>()
+    var editMode = EditMode.inactive
     
-
+    private var firstLoadFinished: Bool = false
+    
+    init(repository: any TodoItemRepository, errorStore: any ErrorStore) {
+        self.repository = repository
+        self.errorStore = errorStore
+    }
+    
+    // MARK: Computed Properties
+    
     var viewState: TodoListViewState {
         if !firstLoadFinished {
             return .loading
@@ -23,33 +36,19 @@ import SwiftUI
         }
     }
     
-    var firstLoadFinished: Bool = false
-    var addingNewTodoItem: Bool = false
-    var sortMethod = SortMethod.newestFirst
-
-    var selectedItems = Set<String>()
-    var editMode = EditMode.inactive
-    
-    init(repository: any TodoItemRepository, errorStore: any ErrorStore) {
-        self.repository = repository
-        self.errorStore = errorStore
-    }
-    
-    // MARK: Computed Properties
-    
     var allSelected: Bool {
         guard case .loaded(let items) = viewState else {
             return false
         }
         
-        return selectedItems.count == items.count
+        return selectedItems == Set(items.map(\.id))
     }
     
     var shouldShowEditButton: Bool {
         switch viewState {
         case .loading, .empty:
             return false
-        case .loaded(let items):
+        case .loaded:
             return true
         }
     }

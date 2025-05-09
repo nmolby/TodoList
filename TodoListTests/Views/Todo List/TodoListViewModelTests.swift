@@ -14,21 +14,70 @@ import CoreData
     // MARK: Init
     @Test("Ensure properties are initialized correctly")
     func testInit() {
-        let (viewModel, _) = constructSUT()
+        let (viewModel, _, _) = constructSUT()
         
         #expect(viewModel.viewState == .loading)
         #expect(viewModel.selectedItems.isEmpty)
         #expect(viewModel.editMode == .inactive)
+        #expect(viewModel.addingNewTodoItem == false)
     }
     
     // MARK: Computed Properties
-    @Test("Tells allSelected logic works")
+    
+    @Test("Tests view state happy path")
+    func testViewStateHappyPath() async {
+        let (viewModel, repository, _) = constructSUT()
+        
+        #expect(viewModel.viewState == .loading)
+        
+        repository.refreshItemsHelper = { }
+        
+        await viewModel.refreshItems()
+        
+        #expect(viewModel.viewState == .empty)
+        
+        repository.todoItems = mockItems()
+        
+        switch viewModel.viewState {
+        case .loaded(let items):
+            #expect(Set(items.map(\.id)) == Set(mockItems().map(\.id)))
+        default:
+            Issue.record()
+        }
+    }
+    
+    @Test("Tests view state error on initial load")
+    func testViewStateErrorPath() async {
+        let (viewModel, repository, _) = constructSUT()
+        
+        #expect(viewModel.viewState == .loading)
+        
+        repository.refreshItemsHelper = {
+            throw TestError.uniqueTestError(.init())
+        }
+        
+        await viewModel.refreshItems()
+        
+        #expect(viewModel.viewState == .empty)
+        
+        repository.todoItems = mockItems()
+        
+        switch viewModel.viewState {
+        case .loaded(let items):
+            #expect(Set(items.map(\.id)) == Set(mockItems().map(\.id)))
+        default:
+            Issue.record()
+        }
+    }
+    
+    @Test("Tests allSelected logic works")
     func testAllSelected() async throws {
-        let (viewModel, repository) = constructSUT()
+        let (viewModel, repository, _) = constructSUT()
         
         let items = mockItems()
         
         repository.todoItems = items
+        await viewModel.refreshItems()
         
         viewModel.selectedItems = .init()
         
@@ -42,206 +91,199 @@ import CoreData
         #expect(viewModel.allSelected == true)
     }
     
-    // MARK: loadTodoItems
-    @Test("Ensure loadTodoItems success leads to view state loaded")
-    func testRefreshItems_happyPath() async {
-        let (viewModel, mockRepo) = constructSUT()
+    @Test("Tests shouldShowEditButton")
+    func testShouldShowEditButton() async {
+        let (viewModel, repository, _) = constructSUT()
         
-        let mockItems = mockItems()
+        #expect(viewModel.shouldShowEditButton == false)
         
-        mockRepo.getTodoItemsHelper = {
-            return mockItems
-        }
+        repository.refreshItemsHelper = { }
         
-        await viewModel.loadTodoItems()
-                        
-        #expect(viewModel.viewState == .loaded(items: mockItems))
+        await viewModel.refreshItems()
         
-        let itemsIncorrectlySorted = mockItems.sorted { item1, item2 in
-            return item1.creationDate > item2.creationDate
-        }
+        #expect(viewModel.shouldShowEditButton == false)
         
-        #expect(viewModel.viewState != .loaded(items: itemsIncorrectlySorted))
+        await setViewStateToLoadedWithMockItems(viewModel: viewModel, repo: repository)
+        
+        #expect(viewModel.shouldShowEditButton == true)
     }
     
-    @Test("Ensure loadTodoItems error leads to view state error")
-    func testLoadTodoItems_errorPath() async {
-        let (viewModel, mockRepo, _) = constructSUT()
+    // MARK: refreshItems
+    @Test("Ensure refresh items calls repo refreshItems")
+    func testRefreshItem() async {
+        let (viewModel, repository, _) = constructSUT()
         
-        let expectedError = TestError.uniqueTestError(.init())
+        var refreshItemsHelperCalled = false
         
-        mockRepo.getTodoItemsHelper = {
-            throw expectedError
+        repository.refreshItemsHelper = {
+            refreshItemsHelperCalled = true
         }
         
-        await viewModel.loadTodoItems()
+        await viewModel.refreshItems()
         
-        #expect(viewModel.viewState == .error(expectedError))
+        #expect(refreshItemsHelperCalled == true)
+    }
+    
+    // MARK: refreshItems
+    @Test("Ensure refreshItem error propogates to error store")
+    func testRefreshItemError() async {
+        let (viewModel, repository, errorStore) = constructSUT()
+                
+        repository.refreshItemsHelper = {
+            throw TestError.uniqueTestError(.init())
+        }
+        
+        await viewModel.refreshItems()
+        
+        #expect(errorStore.errorString != nil)
     }
     
     // MARK: deleteItems
     
-    @Test("Ensure delete items deletes correct items and re-fetches")
+    @Test("Ensure delete items calls repo delete items with correct items")
     func testDeleteItems_happyPath() async throws {
-        let (viewModel, mockRepo, coreDataManager) = constructSUT()
+        let (viewModel, mockRepo, errorStore) = constructSUT()
         
-        let allItems = mockItems(context: coreDataManager.container.viewContext)
-        let itemsAfterDeletions = Array(allItems[0..<5])
-        let itemsToBeDeleted = Array(allItems[5...])
+        await setViewStateToLoadedWithMockItems(viewModel: viewModel, repo: mockRepo)
+
+        guard case .loaded(let items) = viewModel.viewState else {
+            Issue.record()
+            return
+        }
+        
+        let expectedItems = items[0...5]
+        var deleteTodoItemsCalled = false
                 
-        mockRepo.getTodoItemsHelper = {
-            return allItems
+        mockRepo.deleteTodoItemsHelper = { itemsToDelete in
+            deleteTodoItemsCalled = true
+            #expect(Set(expectedItems.map(\.id)) == Set(itemsToDelete.map(\.id)))
         }
         
-        var deleteTodoItemCallCount = 0
+        await viewModel.deleteItems(at: .init(integersIn: 0...5))
         
-        await viewModel.loadTodoItems()
-        
-        mockRepo.deleteTodoItemsHelper = { deletedItems in
-            #expect(Set(deletedItems) == Set(itemsToBeDeleted))
-            deleteTodoItemCallCount += 1
-        }
-        
-        mockRepo.getTodoItemsHelper = {
-            return itemsAfterDeletions
-        }
-        
-        try await viewModel.deleteItems(at: .init(integersIn: 5..<allItems.endIndex))
-                
-        #expect(viewModel.viewState == .loaded(items: itemsAfterDeletions))
-        #expect(deleteTodoItemCallCount == 1)
+        #expect(deleteTodoItemsCalled == true)
+        #expect(errorStore.errorString == nil)
     }
     
     @Test("Ensure delete items no-op when input is empty")
     func testDeleteItems_emptyPath() async throws {
-        let (viewModel, mockRepo, coreDataManager) = constructSUT()
+        let (viewModel, mockRepo, _) = constructSUT()
         
-        let allItems = mockItems(context: coreDataManager.container.viewContext)
+        await setViewStateToLoadedWithMockItems(viewModel: viewModel, repo: mockRepo)
+        
+        var deleteTodoItemsCalled = false
                 
-        mockRepo.getTodoItemsHelper = {
-            return allItems
+        mockRepo.deleteTodoItemsHelper = { itemsToDelete in
+            deleteTodoItemsCalled = true
         }
         
-        await viewModel.loadTodoItems()
-                        
-        mockRepo.deleteTodoItemsHelper = { deletedItems in
-            Issue.record("Delete items should not be called")
-        }
+        await viewModel.deleteItems(at: .init())
         
-        mockRepo.getTodoItemsHelper = {
-            Issue.record("Get items should not be called")
-            return []
-        }
-        
-        try await viewModel.deleteItems(at: .init())
+        #expect(deleteTodoItemsCalled == false)
     }
     
     @Test("Ensure delete items error is propogated")
     func testDeleteItems_error() async throws {
-        let (viewModel, mockRepo, coreDataManager) = constructSUT()
+        let (viewModel, mockRepo, errorStore) = constructSUT()
         
-        let allItems = mockItems(context: coreDataManager.container.viewContext)
-        let expectedError = TestError.uniqueTestError(.init())
-                
-        mockRepo.getTodoItemsHelper = {
-            return allItems
-        }
+        await setViewStateToLoadedWithMockItems(viewModel: viewModel, repo: mockRepo)
         
         mockRepo.deleteTodoItemsHelper = { _ in
-            throw expectedError
+            throw TestError.uniqueTestError(.init())
         }
         
-        await viewModel.loadTodoItems()
+        await viewModel.deleteItems(at: .init(integersIn: 0...5))
         
-        await #expect(throws: expectedError) {
-            try await viewModel.deleteItems(at: .init(integersIn: 5..<allItems.endIndex))
-        }
+        #expect(errorStore.errorString != nil)
     }
     
     // MARK: deleteSelectedItems
     
-    @Test("Ensure delete selected item deletes selected items and re-fetches")
+    @Test("Ensure delete selected items calls repo with selected items")
     func testDeleteSelectedItems_happyPath() async throws {
-        let (viewModel, mockRepo, coreDataManager) = constructSUT()
+        let (viewModel, mockRepo, errorStore) = constructSUT()
         
-        let allItems = mockItems(context: coreDataManager.container.viewContext)
-        let itemsAfterDeletions = Array(allItems[0..<5])
-        let itemsToBeDeleted = Array(allItems[5...])
+        let mockItems = await setViewStateToLoadedWithMockItems(viewModel: viewModel, repo: mockRepo)
+        
+        let expectedItemsForDeletion = Set(mockItems[0...5])
+        
+        viewModel.selectedItems = Set(expectedItemsForDeletion.map(\.id))
                 
-        mockRepo.getTodoItemsHelper = {
-            return allItems
-        }
-        
-        await viewModel.loadTodoItems()
-        
         var deleteTodoItemCallCount = 0
         
         mockRepo.deleteTodoItemsHelper = { deletedItems in
             deleteTodoItemCallCount += 1
-            #expect(Set(deletedItems) == Set(itemsToBeDeleted))
+            #expect(Set(deletedItems) == Set(expectedItemsForDeletion))
         }
         
-        mockRepo.getTodoItemsHelper = {
-            return itemsAfterDeletions
-        }
+        await viewModel.deleteSelectedItems()
         
-        viewModel.selectedItems = Set(itemsToBeDeleted.map(\.id))
-        try await viewModel.deleteSelectedItems()
-                
-        #expect(viewModel.viewState == .loaded(items: itemsAfterDeletions))
         #expect(deleteTodoItemCallCount == 1)
+        #expect(errorStore.errorString == nil)
+        
     }
     
     @Test("Ensure delete selected item no-op when selection is empty")
     func testDeleteSelectedItems_emptyPath() async throws {
-        let (viewModel, mockRepo, coreDataManager) = constructSUT()
+        let (viewModel, mockRepo, _) = constructSUT()
         
-        let allItems = mockItems(context: coreDataManager.container.viewContext)
-                
-        mockRepo.getTodoItemsHelper = {
-            return allItems
-        }
+        await setViewStateToLoadedWithMockItems(viewModel: viewModel, repo: mockRepo)
         
-        await viewModel.loadTodoItems()
-        
-        viewModel.selectedItems = .init()
-                
+        viewModel.selectedItems = Set()
+                        
         mockRepo.deleteTodoItemsHelper = { deletedItems in
-            Issue.record("Delete items should not be called")
+            Issue.record()
         }
         
-        mockRepo.getTodoItemsHelper = {
-            Issue.record("Get items should not be called")
-            return []
-        }
-        
-        try await viewModel.deleteSelectedItems()
+        await viewModel.deleteSelectedItems()
     }
     
     @Test("Ensure delete selected items error is propogated")
-    func testDeleteSelectedItems_error() async throws {
-        let (viewModel, mockRepo, coreDataManager) = constructSUT()
+    func testDeleteSelectedItems_error() async {
+        let (viewModel, mockRepo, errorStore) = constructSUT()
         
-        let allItems = mockItems(context: coreDataManager.container.viewContext)
-        let expectedError = TestError.uniqueTestError(.init())
+        await setViewStateToLoadedWithMockItems(viewModel: viewModel, repo: mockRepo)
                 
-        mockRepo.getTodoItemsHelper = {
-            return allItems
+        viewModel.selectedItems = Set(mockItems()[0...5].map(\.id))
+                        
+        mockRepo.deleteTodoItemsHelper = { deletedItems in
+            throw TestError.uniqueTestError(.init())
         }
         
-        mockRepo.deleteTodoItemsHelper = { _ in
-            throw expectedError
-        }
+        await viewModel.deleteSelectedItems()
         
-        await viewModel.loadTodoItems()
-        
-        viewModel.selectedItems = Set(allItems.map(\.id))
-        
-        await #expect(throws: expectedError) {
-            try await viewModel.deleteSelectedItems()
-        }
+        #expect(errorStore.errorString != nil)
     }
     
+    @Test("Ensure load sample todos calls repo")
+    func testLoadSampleTodos() async  {
+        let (viewModel, mockRepo, errorStore) = constructSUT()
+                
+        var loadSampleTodosCallCount: Int = 0
+        
+        mockRepo.loadSampleTodosHelper = {
+            loadSampleTodosCallCount += 1
+        }
+        
+        await viewModel.loadSampleTodos()
+        
+        #expect(loadSampleTodosCallCount == 1)
+        #expect(errorStore.errorString == nil)
+    }
+    
+    @Test("Ensure load sample todos errors is sent to error store")
+    func testLoadSampleTodos_error() async  {
+        let (viewModel, mockRepo, errorStore) = constructSUT()
+                        
+        mockRepo.loadSampleTodosHelper = {
+            throw TestError.uniqueTestError(.init())
+        }
+        
+        await viewModel.loadSampleTodos()
+        
+        #expect(errorStore.errorString != nil)
+    }
+
     // MARK: toggleEditing
     @Test("Ensure toggle editing toggles editMode")
     func testToggleEditing() {
@@ -260,40 +302,74 @@ import CoreData
     
     // MARK: Select All
     @Test("Ensure select all selects all items")
-    func testSelectAll() {
-        let (viewModel, _, coreDataManager) = constructSUT()
+    func testSelectAll() async {
+        let (viewModel, mockRepo, _) = constructSUT()
         
-        let items = mockItems(context: coreDataManager.container.viewContext)
-        
-        viewModel.viewState = .loaded(items: items)
-        
+        await setViewStateToLoadedWithMockItems(viewModel: viewModel, repo: mockRepo)
+                
         viewModel.selectAll()
         
-        #expect(viewModel.selectedItems == Set(items.map(\.id)))
+        #expect(viewModel.selectedItems == Set(mockItems().map(\.id)))
     }
     
     // MARK: Deselect All
-    @Test("Ensure deselect all selects all items")
-    func testDeselectAll() {
-        let (viewModel, _, coreDataManager) = constructSUT()
+    @Test("Ensure deselect all deselects all items")
+    func testDeselectAll() async {
+        let (viewModel, mockRepo, _) = constructSUT()
         
-        let items = mockItems(context: coreDataManager.container.viewContext)
+        await setViewStateToLoadedWithMockItems(viewModel: viewModel, repo: mockRepo)
         
-        viewModel.viewState = .loaded(items: items)
-        viewModel.selectedItems = Set(items.map(\.id))
+        viewModel.selectedItems = Set(mockItems().map(\.id))
         
         viewModel.deselectAll()
         
         #expect(viewModel.selectedItems.isEmpty)
     }
     
+    // MARK: addNewTodoItem
+    @Test("Ensure addNewTodoItem sets addingNewTodoItem to true")
+    func testAddNewTodoItem() async {
+        let (viewModel, _, _) = constructSUT()
+        
+        viewModel.addNewTodoItem()
+        
+        #expect(viewModel.addingNewTodoItem == true)
+    }
     
-    private func constructSUT() ->  (TodoListViewModel, TodoItemRepositoryMock) {
+    // MARK: createAddNewTodoItemViewModel
+    @Test("Ensure createAddNewTodoItemViewModel uses correct references")
+    func testCreateAddNewTodoItemViewModel() {
+        let (viewModel, mockRepo, errorStore) = constructSUT()
+        
+        let createAddNewTodoItemViewModel = viewModel.createAddNewTodoItemViewModel()
+        
+        guard let errorStoreInViewModel = (createAddNewTodoItemViewModel.errorStore as? ErrorStoreMock), let repoInViewModel = (createAddNewTodoItemViewModel.todoItemRepository as? TodoItemRepositoryMock) else {
+            Issue.record()
+            return
+        }
+        
+        #expect(errorStoreInViewModel === errorStore)
+        #expect(repoInViewModel === mockRepo)
+    }
+    
+    @discardableResult private func setViewStateToLoadedWithMockItems(viewModel: TodoListViewModel, repo: TodoItemRepositoryMock) async -> [TodoItem] {
+        let items = mockItems()
+        
+        repo.refreshItemsHelper = { }
+        repo.todoItems = items
+        
+        await viewModel.refreshItems()
+        
+        return items
+    }
+    
+    private func constructSUT() ->  (TodoListViewModel, TodoItemRepositoryMock, ErrorStoreMock) {
         let mockRepository = TodoItemRepositoryMock()
+        let mockErrorStore = ErrorStoreMock()
         
-        let viewModel = TodoListViewModel(repository: mockRepository)
+        let viewModel = TodoListViewModel(repository: mockRepository, errorStore: mockErrorStore)
         
-        return (viewModel, mockRepository)
+        return (viewModel, mockRepository, mockErrorStore)
     }
     
 }

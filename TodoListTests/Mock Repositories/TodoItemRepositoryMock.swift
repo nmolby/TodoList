@@ -9,25 +9,54 @@ import Foundation
 @testable import TodoList
 
 class TodoItemRepositoryMock: TodoItemRepository {
+    
+    var todoItems: [TodoItem] = []
+    
     var refreshItemsHelper: (() async throws -> Void)? = nil
 
     func refreshTodoItems() async throws {
         guard let refreshItemsHelper else {
             throw TestError.responseNotSet
         }
-        
-        try await refreshTodoItems()
+        try await refreshItemsHelper()
     }
-    
-    var deleteTodoItemsHelper: (([TodoList.TodoItem]) async throws -> Void)? = nil
 
-    func deleteTodoItems(_ items: [TodoList.TodoItem]) async throws {
+    var loadInitialItemsHelper: (() throws -> Void)? = nil
+    
+    @MainActor
+    func loadInitialItems() throws {
+        guard let loadInitialItemsHelper else {
+            throw TestError.responseNotSet
+        }
+        try loadInitialItemsHelper()
+    }
+
+    var deleteTodoItemsHelper: (([TodoItem]) async throws -> Void)? = nil
+
+    func deleteTodoItems(_ items: [TodoItem]) async throws {
         guard let deleteTodoItemsHelper else {
             throw TestError.responseNotSet
         }
-        
-        return try await deleteTodoItemsHelper(items)
+        try await deleteTodoItemsHelper(items)
     }
-        
-    var todoItems: [TodoList.TodoItem] = []
+
+    var addTodoHelper: ((TodoItem) async throws -> Void)? = nil
+
+    func addTodo(_ item: TodoItem) async throws {
+        guard let addTodoHelper else {
+            throw TestError.responseNotSet
+        }
+        try await addTodoHelper(item)
+    }
+    
+    var loadSampleTodosHelper: (() async throws -> Void)? = nil
+
+    func loadSampleTodos() async throws {
+        guard let loadSampleTodosHelper else {
+            throw TestError.responseNotSet
+        }
+        try await loadSampleTodosHelper()
+    }
+    
+
 }
