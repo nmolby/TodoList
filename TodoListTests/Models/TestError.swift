@@ -8,7 +8,7 @@
 import Foundation
 
 enum TestError: Error, Equatable {
-    case notImplemented
     case responseNotSet
+    case invalidHelper
     case uniqueTestError(UUID)
 }

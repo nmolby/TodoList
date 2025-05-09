@@ -11,5 +11,4 @@ enum TodoListViewState: Equatable {
     case loading
     case empty
     case loaded(items: [TodoItem])
-    
 }

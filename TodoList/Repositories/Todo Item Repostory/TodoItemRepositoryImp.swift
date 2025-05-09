@@ -17,7 +17,6 @@ class TodoItemRepositoryImp: TodoItemRepository {
     init(coreDataManager: CoreDataManager, apiClient: any APIClient) {
         self.coreDataManager = coreDataManager
         self.apiClient = apiClient
-
     }
     
     @MainActor func loadInitialItems() throws {
@@ -87,7 +86,7 @@ class TodoItemRepositoryImp: TodoItemRepository {
         let context = coreDataManager.container.viewContext
 
         try await context.perform {
-            let todoEntities = todoDtos.map { dto in
+            _ = todoDtos.map { dto in
                 let id = overrideId ? UUID().uuidString : String(dto.id)
                 return TodoItemEntity(context: context, name: dto.title, id: String(id), creationDate: .now)
             }
