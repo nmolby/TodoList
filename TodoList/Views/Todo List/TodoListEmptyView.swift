@@ -20,7 +20,7 @@ struct TodoListEmptyView: View {
                 .font(.headline)
             
             Button("Add a To-Do") {
-                viewModel.addingNewTodoItem = true
+                viewModel.addNewTodoItem()
             }
             
             Button("Load sample To-Dos") {
@@ -33,5 +33,5 @@ struct TodoListEmptyView: View {
 }
 
 #Preview {
-    TodoListEmptyView(viewModel: .constant(.init(repository: TodoItemRepositoryImp.preview, errorStore: ErrorStoreImp())))
+    TodoListEmptyView(viewModel: .constant(.init(repository: TodoItemRepositoryImp.preview, errorStore: ErrorStoreImp(), navigationRouter: BaseAppNavigationRouter())))
 }

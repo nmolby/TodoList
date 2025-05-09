@@ -11,17 +11,18 @@ import SwiftUI
 @MainActor @Observable class TodoListViewModel {
     let repository: any TodoItemRepository
     var errorStore: any ErrorStore
+    var navigationRouter: any NavigationRouter<BaseAppNavigationRoute>
         
-    var addingNewTodoItem: Bool = false
     var sortMethod = SortMethod.newestFirst
     var selectedItems = Set<String>()
     var editMode = EditMode.inactive
     
     private var firstLoadFinished: Bool = false
     
-    init(repository: any TodoItemRepository, errorStore: any ErrorStore) {
+    init(repository: any TodoItemRepository, errorStore: any ErrorStore, navigationRouter: any NavigationRouter<BaseAppNavigationRoute>) {
         self.repository = repository
         self.errorStore = errorStore
+        self.navigationRouter = navigationRouter
     }
     
     // MARK: Computed Properties
@@ -127,11 +128,7 @@ import SwiftUI
     }
     
     func addNewTodoItem() {
-        addingNewTodoItem = true
-    }
-    
-    func createAddNewTodoItemViewModel() -> AddTodoItemViewModel {
-        return .init(todoItemRepository: repository, errorStore: errorStore)
+        navigationRouter.navigate(to: .addTodo)
     }
     
     func sort(items: [TodoItem]) -> [TodoItem] {

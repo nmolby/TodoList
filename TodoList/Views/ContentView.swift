@@ -10,15 +10,22 @@ import CoreData
 
 struct ContentView: View {
     @State var dependencyStore = DependencyStoreImp()
+    @State var navigationRouter = BaseAppNavigationRouter()
     
     var body: some View {
         NavigationStack {
-            TodoListView(viewModel: .init(repository: dependencyStore.todoItemRepository, errorStore: dependencyStore.errorStore))
+            TodoListView(viewModel: .init(repository: dependencyStore.todoItemRepository, errorStore: dependencyStore.errorStore, navigationRouter: navigationRouter))
         }
         .overlay(alignment: .bottom) {
             if let errorString = dependencyStore.errorStore.errorString {
                 ErrorView(errorString: errorString)
                     .transition(.asymmetric(insertion: .push(from: .bottom), removal: .push(from: .top)) )
+            }
+        }
+        .sheet(item: $navigationRouter.sheetDisplayed) { sheet in
+            switch sheet {
+            case .addTodo:
+                AddTodoItemView(viewModel: .init(todoItemRepository: dependencyStore.todoItemRepository, errorStore: dependencyStore.errorStore))
             }
         }
         .animation(.default, value: dependencyStore.errorStore.errorString == nil)

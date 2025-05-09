@@ -40,9 +40,6 @@ struct TodoListView: View {
         .task {
             await viewModel.refreshItems()
         }
-        .sheet(isPresented: $viewModel.addingNewTodoItem) {
-            AddTodoItemView(viewModel: viewModel.createAddNewTodoItemViewModel())
-        }
         .environment(\.editMode, $viewModel.editMode)
         .navigationTitle("Todo List")
     }
@@ -117,5 +114,5 @@ struct TodoListView: View {
 }
 
 #Preview {
-    TodoListView(viewModel: .init(repository: TodoItemRepositoryImp.preview, errorStore: ErrorStoreImp()))
+    TodoListView(viewModel: .init(repository: TodoItemRepositoryImp.preview, errorStore: ErrorStoreImp(), navigationRouter: BaseAppNavigationRouter()))
 }
