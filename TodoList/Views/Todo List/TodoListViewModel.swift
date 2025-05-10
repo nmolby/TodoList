@@ -113,6 +113,11 @@ import SwiftUI
     
     func toggleEditing() {
         editMode = editMode.isEditing ? .inactive : .active
+        
+        // Clear out selected items if we are done editing
+        if !editMode.isEditing {
+            selectedItems = .init()
+        }
     }
     
     func selectAll() {

@@ -284,7 +284,7 @@ import CoreData
     }
 
     // MARK: toggleEditing
-    @Test("Ensure toggle editing toggles editMode")
+    @Test("Ensure toggle editing toggles editMode and clears selectedItems")
     func testToggleEditing() {
         let sut = constructSUT()
         
@@ -294,9 +294,12 @@ import CoreData
         
         #expect(sut.viewModel.editMode == .active)
         
+        sut.viewModel.selectedItems = .init(mockItems().map(\.id))
+        
         sut.viewModel.toggleEditing()
         
         #expect(sut.viewModel.editMode == .inactive)
+        #expect(sut.viewModel.selectedItems.isEmpty)
     }
     
     // MARK: Select All

@@ -76,26 +76,28 @@ class TodoItemRepository: TodoItemRepositoryProtocol {
     }
     
     @MainActor func loadSampleTodos() async throws {
-        let todoDtos: [TodoItemDTO] = try await apiClient.request(.fetchTodos)
-        
-        // To facilitate loading sample todos multiple times, override the id on the todos if already present in the list
-        let todoItemsIdSet = Set(todoItems.map(\.id))
-        let todoItemDtoIdSet = Set(todoDtos.map { String($0.id) })
-        let intersection = todoItemsIdSet.intersection(todoItemDtoIdSet)
-        
-        let overrideId = !intersection.isEmpty
-        
         let context = coreDataManager.container.viewContext
 
+        let todoDtos: [TodoItemDTO] = try await apiClient.request(.fetchTodos)
+        
         try await context.perform {
+            // Remove Todo's that will be replaced
+            let fetchRequest = TodoItemEntity.fetchRequest() as NSFetchRequest<NSFetchRequestResult>
+            
+            fetchRequest.predicate = NSPredicate(format: "id IN %@", todoDtos.map(\.id))
+            
+            let deleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
+            
+            try context.executeAndMergeChanges(using: deleteRequest)
+            
+            // Add in new Todo's to replace them
             _ = todoDtos.map { dto in
-                let id = overrideId ? UUID().uuidString : String(dto.id)
-                return TodoItemEntity(context: context, name: dto.title, id: String(id), creationDate: .now)
+                return TodoItemEntity(context: context, name: dto.title, id: String(dto.id), creationDate: .now)
             }
             
             try context.save()
         }
-
+        
         try await refreshTodoItems()
     }
     
