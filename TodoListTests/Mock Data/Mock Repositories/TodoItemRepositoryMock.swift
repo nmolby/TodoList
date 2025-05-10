@@ -8,7 +8,7 @@
 import Foundation
 @testable import TodoList
 
-class TodoItemRepositoryMock: TodoItemRepository {
+class TodoItemRepositoryMock: TodoItemRepositoryProtocol {
     
     var todoItems: [TodoItem] = []
     

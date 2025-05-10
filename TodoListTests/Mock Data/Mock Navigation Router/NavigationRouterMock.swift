@@ -8,13 +8,21 @@
 import Foundation
 @testable import TodoList
 
-class NavigationRouterMock<Route: NavigationRoute>: NavigationRouter {
+class NavigationRouterMock<Route: NavigationRouteProtocol>: NavigationRouterProtocol {
     var sheetDisplayed: Route.SheetNavigationRoute? {
-        fatalError("Do not use sheetDisplayed in MockNavigationRouter. Track navigated routes with navigatedRoute")
+        get {
+            fatalError("Do not use sheetDisplayed in MockNavigationRouter. Track navigated routes with navigatedRoute")
+        } set {
+            fatalError("Do not use sheetDisplayed in MockNavigationRouter. Track navigated routes with navigatedRoute")
+        }
     }
     
     var pushNavigationStack: [Route.PushNavigationRoute] {
-        fatalError("Do not use pushNavigationStack in MockNavigationRouter. Track navigated routes with navigatedRoute")
+        get {
+            fatalError("Do not use pushNavigationStack in MockNavigationRouter. Track navigated routes with navigatedRoute")
+        } set {
+            fatalError("Do not use pushNavigationStack in MockNavigationRouter. Track navigated routes with navigatedRoute")
+        }
     }
     
     var navigatedRoute: Route?

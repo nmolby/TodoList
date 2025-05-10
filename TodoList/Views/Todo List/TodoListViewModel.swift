@@ -9,9 +9,9 @@ import Foundation
 import SwiftUI
 
 @MainActor @Observable class TodoListViewModel {
-    let repository: any TodoItemRepository
-    var errorStore: any ErrorStore
-    var navigationRouter: any NavigationRouter<BaseAppNavigationRoute>
+    let repository: any TodoItemRepositoryProtocol
+    var errorStore: any ErrorStoreProtocol
+    var navigationRouter: any NavigationRouterProtocol<BaseAppNavigationRoute>
         
     var sortMethod = SortMethod.newestFirst
     var selectedItems = Set<String>()
@@ -19,7 +19,7 @@ import SwiftUI
     
     private var firstLoadFinished: Bool = false
     
-    init(repository: any TodoItemRepository, errorStore: any ErrorStore, navigationRouter: any NavigationRouter<BaseAppNavigationRoute>) {
+    init(repository: any TodoItemRepositoryProtocol, errorStore: any ErrorStoreProtocol, navigationRouter: any NavigationRouterProtocol<BaseAppNavigationRoute>) {
         self.repository = repository
         self.errorStore = errorStore
         self.navigationRouter = navigationRouter

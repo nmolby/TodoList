@@ -10,7 +10,7 @@ import Foundation
 // Please note the below routes are not implemented and are intended
 // As an additional example of how the NavigationRoute architecture
 // Would work
-enum OnboardingNavigationRoute: NavigationRoute {
+enum OnboardingNavigationRoute: NavigationRouteProtocol {
     typealias SheetNavigationRoute = OnboardingSheetNavigationRoute
     
     typealias PushNavigationRoute = OnboardingPushNavigationRoute

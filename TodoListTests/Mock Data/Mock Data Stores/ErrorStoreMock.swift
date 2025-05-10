@@ -8,6 +8,6 @@
 import Foundation
 @testable import TodoList
 
-class ErrorStoreMock: ErrorStore {
+class ErrorStoreMock: ErrorStoreProtocol {
     var errorString: String?
 }

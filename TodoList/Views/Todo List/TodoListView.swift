@@ -114,5 +114,5 @@ struct TodoListView: View {
 }
 
 #Preview {
-    TodoListView(viewModel: .init(repository: TodoItemRepositoryImp.preview, errorStore: ErrorStoreImp(), navigationRouter: BaseAppNavigationRouter()))
+    TodoListView(viewModel: .init(repository: TodoItemRepository.preview, errorStore: ErrorStore(), navigationRouter: BaseAppNavigationRouter()))
 }

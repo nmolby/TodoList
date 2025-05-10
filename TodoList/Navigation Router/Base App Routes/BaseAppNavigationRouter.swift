@@ -7,7 +7,7 @@
 
 import Foundation
 
-@Observable class BaseAppNavigationRouter: NavigationRouter {
+@Observable class BaseAppNavigationRouter: NavigationRouterProtocol {
     
     var sheetDisplayed: BaseAppSheetNavigationRoute? = nil
     

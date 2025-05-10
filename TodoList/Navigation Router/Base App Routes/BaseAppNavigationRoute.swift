@@ -6,7 +6,7 @@
 //
 
 
-enum BaseAppNavigationRoute: NavigationRoute {
+enum BaseAppNavigationRoute: NavigationRouteProtocol {
     typealias SheetNavigationRoute = BaseAppSheetNavigationRoute
     
     typealias PushNavigationRoute = BaseAppPushNavigationRoute

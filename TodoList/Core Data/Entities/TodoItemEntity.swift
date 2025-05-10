@@ -14,7 +14,7 @@ extension String {
 @objc public final class TodoItemEntity: NSManagedObject {
 
     @nonobjc public class func fetchRequest() -> NSFetchRequest<TodoItemEntity> {
-        return NSFetchRequest<TodoItemEntity>(entityName: "TodoItemEntity")
+        return NSFetchRequest<TodoItemEntity>(entityName: .todoItem)
     }
 
     @NSManaged public var creationDate: Date
@@ -23,7 +23,7 @@ extension String {
     @NSManaged public var id: String
     
     public init(context: NSManagedObjectContext, name: String, id: String = UUID().uuidString, creationDate: Date = .now,  editDate: Date? = nil) {
-        let entity = NSEntityDescription.entity(forEntityName: "TodoItemEntity", in: context)!
+        let entity = NSEntityDescription.entity(forEntityName: .todoItem, in: context)!
         super.init(entity: entity, insertInto: context)
         self.id = id
         self.creationDate = creationDate

@@ -33,5 +33,5 @@ struct TodoListEmptyView: View {
 }
 
 #Preview {
-    TodoListEmptyView(viewModel: .constant(.init(repository: TodoItemRepositoryImp.preview, errorStore: ErrorStoreImp(), navigationRouter: BaseAppNavigationRouter())))
+    TodoListEmptyView(viewModel: .constant(.init(repository: TodoItemRepository.preview, errorStore: ErrorStore(), navigationRouter: BaseAppNavigationRouter())))
 }

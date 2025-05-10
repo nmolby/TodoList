@@ -79,13 +79,13 @@ import CoreData
     private func constructSUT() -> SUT {
         let coreDataManager = CoreDataManager(inMemory: true)
         let apiClient = APIClientMock<[TodoItemDTO]>()
-        let repository = TodoItemRepositoryImp(coreDataManager: coreDataManager, apiClient: apiClient)
+        let repository = TodoItemRepository(coreDataManager: coreDataManager, apiClient: apiClient)
         
         return SUT(repository: repository, coreDataManager: coreDataManager, apiClient: apiClient)
     }
     
     private struct SUT {
-        var repository: TodoItemRepositoryImp
+        var repository: TodoItemRepository
         var coreDataManager: CoreDataManager
         var apiClient: APIClientMock<[TodoItemDTO]>
     }

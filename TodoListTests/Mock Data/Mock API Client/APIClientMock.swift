@@ -8,7 +8,7 @@
 import Foundation
 @testable import TodoList
 
-class APIClientMock<ResponseType: Decodable>: APIClient {
+class APIClientMock<ResponseType: Decodable>: APIClientProtocol {
     var requestHelper: ((APIRoute) async throws -> ResponseType)? = nil
 
     func request<T>(_ route: TodoList.APIRoute) async throws -> T where T : Decodable {

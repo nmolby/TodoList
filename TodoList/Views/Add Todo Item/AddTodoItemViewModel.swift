@@ -8,13 +8,13 @@
 import Foundation
 
 @Observable class AddTodoItemViewModel {
-    let todoItemRepository: TodoItemRepository
-    var errorStore: ErrorStore
+    let todoItemRepository: TodoItemRepositoryProtocol
+    var errorStore: ErrorStoreProtocol
     
     var name: String = ""
     var submitting: Bool = false
     
-    init(todoItemRepository: TodoItemRepository, errorStore: ErrorStore) {
+    init(todoItemRepository: TodoItemRepositoryProtocol, errorStore: ErrorStoreProtocol) {
         self.todoItemRepository = todoItemRepository
         self.errorStore = errorStore
     }
