@@ -1,5 +1,5 @@
 //
-//  TodoItemRepositoryImpTests.swift
+//  TodoItemRepositoryTests.swift
 //  TodoListTests
 //
 //  Created by Nathan Molby on 5/9/25.
@@ -9,7 +9,7 @@ import Testing
 import CoreData
 @testable import TodoList
 
-@MainActor struct TodoItemRepositoryImpTests {
+@MainActor struct TodoItemRepositoryTests {
 
     @Test("Test loading pulls items from core data and converts them")
     func testLoadInitialItems() throws {
@@ -92,7 +92,7 @@ import CoreData
 
 }
 
-extension TodoItemRepositoryImpTests {
+extension TodoItemRepositoryTests {
     private func createMockEntities(context: NSManagedObjectContext) -> [TodoItemEntity] {
         return [
             TodoItemEntity(context: context, name: "Feed the dog", id: "1", creationDate: Date(), editDate: nil),
