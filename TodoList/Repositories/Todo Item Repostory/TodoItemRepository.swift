@@ -59,7 +59,6 @@ class TodoItemRepository: TodoItemRepositoryProtocol {
                 name: item.name,
                 id: item.id,
                 creationDate: item.creationDate,
-                editDate: item.editDate
             )
             
             try context.save()

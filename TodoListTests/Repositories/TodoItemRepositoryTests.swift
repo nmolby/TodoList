@@ -37,7 +37,7 @@ import CoreData
     func testAddTodo() async throws {
         let sut = constructSUT()
         
-        let todo = TodoItem(name: "Test Todo", id: UUID().uuidString, creationDate: .now, editDate: nil)
+        let todo = TodoItem(name: "Test Todo", id: UUID().uuidString, creationDate: .now)
         
         try await sut.repository.addTodo(todo)
         
@@ -95,17 +95,18 @@ import CoreData
 extension TodoItemRepositoryTests {
     private func createMockEntities(context: NSManagedObjectContext) -> [TodoItemEntity] {
         return [
-            TodoItemEntity(context: context, name: "Feed the dog", id: "1", creationDate: Date(), editDate: nil),
-            TodoItemEntity(context: context, name: "Take out trash", id: "2", creationDate: Date().addingTimeInterval(-3600), editDate: Date().addingTimeInterval(-1800)),
-            TodoItemEntity(context: context, name: "Read Bible", id: "3", creationDate: Date().addingTimeInterval(-7200), editDate: nil),
-            TodoItemEntity(context: context, name: "Water plants", id: "4", creationDate: Date().addingTimeInterval(-10800), editDate: Date().addingTimeInterval(-9000)),
-            TodoItemEntity(context: context, name: "Reply to email", id: "5", creationDate: Date().addingTimeInterval(-14400), editDate: nil),
-            TodoItemEntity(context: context, name: "Buy groceries", id: "6", creationDate: Date().addingTimeInterval(-18000), editDate: Date().addingTimeInterval(-10000)),
-            TodoItemEntity(context: context, name: "Call Mom", id: "7", creationDate: Date().addingTimeInterval(-21600), editDate: nil),
-            TodoItemEntity(context: context, name: "Go for a walk", id: "8", creationDate: Date().addingTimeInterval(-25200), editDate: Date().addingTimeInterval(-20000)),
-            TodoItemEntity(context: context, name: "Check mailbox", id: "9", creationDate: Date().addingTimeInterval(-28800), editDate: nil),
-            TodoItemEntity(context: context, name: "Make dinner", id: "10", creationDate: Date().addingTimeInterval(-32400), editDate: nil)
+            TodoItemEntity(context: context, name: "Feed the dog", id: "1", creationDate: Date()),
+            TodoItemEntity(context: context, name: "Take out trash", id: "2", creationDate: Date().addingTimeInterval(-3600)),
+            TodoItemEntity(context: context, name: "Read Bible", id: "3", creationDate: Date().addingTimeInterval(-7200)),
+            TodoItemEntity(context: context, name: "Water plants", id: "4", creationDate: Date().addingTimeInterval(-10800)),
+            TodoItemEntity(context: context, name: "Reply to email", id: "5", creationDate: Date().addingTimeInterval(-14400)),
+            TodoItemEntity(context: context, name: "Buy groceries", id: "6", creationDate: Date().addingTimeInterval(-18000)),
+            TodoItemEntity(context: context, name: "Call Mom", id: "7", creationDate: Date().addingTimeInterval(-21600)),
+            TodoItemEntity(context: context, name: "Go for a walk", id: "8", creationDate: Date().addingTimeInterval(-25200)),
+            TodoItemEntity(context: context, name: "Check mailbox", id: "9", creationDate: Date().addingTimeInterval(-28800)),
+            TodoItemEntity(context: context, name: "Make dinner", id: "10", creationDate: Date().addingTimeInterval(-32400))
         ]
+
     }
     
     private func createMockDTOs() -> [TodoItemDTO] {

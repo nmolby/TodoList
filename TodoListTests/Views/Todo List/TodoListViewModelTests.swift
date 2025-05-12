@@ -371,17 +371,18 @@ import CoreData
 extension TodoListViewModelTests {
     private func mockItems() -> [TodoItem] {
         return [
-            TodoItem(name: "Feed the dog", id: "1", creationDate: Date(), editDate: nil),
-            TodoItem(name: "Take out trash", id: "2", creationDate: Date().addingTimeInterval(-3600), editDate: Date().addingTimeInterval(-1800)),
-            TodoItem(name: "Read Bible", id: "3", creationDate: Date().addingTimeInterval(-7200), editDate: nil),
-            TodoItem(name: "Water plants", id: "4", creationDate: Date().addingTimeInterval(-10800), editDate: Date().addingTimeInterval(-9000)),
-            TodoItem(name: "Reply to email", id: "5", creationDate: Date().addingTimeInterval(-14400), editDate: nil),
-            TodoItem(name: "Buy groceries", id: "6", creationDate: Date().addingTimeInterval(-18000), editDate: Date().addingTimeInterval(-10000)),
-            TodoItem(name: "Call Mom", id: "7", creationDate: Date().addingTimeInterval(-21600), editDate: nil),
-            TodoItem(name: "Go for a walk", id: "8", creationDate: Date().addingTimeInterval(-25200), editDate: Date().addingTimeInterval(-20000)),
-            TodoItem(name: "Check mailbox", id: "9", creationDate: Date().addingTimeInterval(-28800), editDate: nil),
-            TodoItem(name: "Make dinner", id: "10", creationDate: Date().addingTimeInterval(-32400), editDate: nil)
+            TodoItem(name: "Feed the dog", id: "1", creationDate: Date()),
+            TodoItem(name: "Take out trash", id: "2", creationDate: Date().addingTimeInterval(-3600)),
+            TodoItem(name: "Read Bible", id: "3", creationDate: Date().addingTimeInterval(-7200)),
+            TodoItem(name: "Water plants", id: "4", creationDate: Date().addingTimeInterval(-10800)),
+            TodoItem(name: "Reply to email", id: "5", creationDate: Date().addingTimeInterval(-14400)),
+            TodoItem(name: "Buy groceries", id: "6", creationDate: Date().addingTimeInterval(-18000)),
+            TodoItem(name: "Call Mom", id: "7", creationDate: Date().addingTimeInterval(-21600)),
+            TodoItem(name: "Go for a walk", id: "8", creationDate: Date().addingTimeInterval(-25200)),
+            TodoItem(name: "Check mailbox", id: "9", creationDate: Date().addingTimeInterval(-28800)),
+            TodoItem(name: "Make dinner", id: "10", creationDate: Date().addingTimeInterval(-32400))
         ]
+
         .sorted { item1, item2 in
             return item1.creationDate < item2.creationDate
         }

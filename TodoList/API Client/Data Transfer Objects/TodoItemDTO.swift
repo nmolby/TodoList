@@ -16,6 +16,6 @@ struct TodoItemDTO: Decodable {
 
 extension TodoItemDTO {
     func toTodoItem() -> TodoItem {
-        return .init(name: title, id: String(id), creationDate: .now, editDate: nil)
+        return .init(name: title, id: String(id), creationDate: .now)
     }
 }

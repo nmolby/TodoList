@@ -63,16 +63,16 @@ struct CoreDataManager {
 extension CoreDataManager {
     @discardableResult private static func setPreviewItems(context: NSManagedObjectContext) -> [TodoItemEntity] {
         [
-            TodoItemEntity(context: context, name: "Feed the dog", creationDate: Date(), editDate: nil),
-            TodoItemEntity(context: context, name: "Take out trash", creationDate: Date().addingTimeInterval(-3600), editDate: Date().addingTimeInterval(-1800)),
-            TodoItemEntity(context: context, name: "Read Bible", creationDate: Date().addingTimeInterval(-7200), editDate: nil),
-            TodoItemEntity(context: context, name: "Water plants", creationDate: Date().addingTimeInterval(-10800), editDate: Date().addingTimeInterval(-9000)),
-            TodoItemEntity(context: context, name: "Reply to email", creationDate: Date().addingTimeInterval(-14400), editDate: nil),
-            TodoItemEntity(context: context, name: "Buy groceries", creationDate: Date().addingTimeInterval(-18000), editDate: Date().addingTimeInterval(-10000)),
-            TodoItemEntity(context: context, name: "Call Mom", creationDate: Date().addingTimeInterval(-21600), editDate: nil),
-            TodoItemEntity(context: context, name: "Go for a walk", creationDate: Date().addingTimeInterval(-25200), editDate: Date().addingTimeInterval(-20000)),
-            TodoItemEntity(context: context, name: "Check mailbox", creationDate: Date().addingTimeInterval(-28800), editDate: nil),
-            TodoItemEntity(context: context, name: "Make dinner", creationDate: Date().addingTimeInterval(-32400), editDate: nil)
+            TodoItemEntity(context: context, name: "Feed the dog", creationDate: Date()),
+            TodoItemEntity(context: context, name: "Take out trash", creationDate: Date().addingTimeInterval(-3600)),
+            TodoItemEntity(context: context, name: "Read Bible", creationDate: Date().addingTimeInterval(-7200)),
+            TodoItemEntity(context: context, name: "Water plants", creationDate: Date().addingTimeInterval(-10800)),
+            TodoItemEntity(context: context, name: "Reply to email", creationDate: Date().addingTimeInterval(-14400)),
+            TodoItemEntity(context: context, name: "Buy groceries", creationDate: Date().addingTimeInterval(-18000)),
+            TodoItemEntity(context: context, name: "Call Mom", creationDate: Date().addingTimeInterval(-21600)),
+            TodoItemEntity(context: context, name: "Go for a walk", creationDate: Date().addingTimeInterval(-25200)),
+            TodoItemEntity(context: context, name: "Check mailbox", creationDate: Date().addingTimeInterval(-28800)),
+            TodoItemEntity(context: context, name: "Make dinner", creationDate: Date().addingTimeInterval(-32400))
 
         ]
     }
