@@ -21,8 +21,6 @@ struct ErrorView: View {
                     .fill(Color.red)
                     .shadow(radius: 4)
             )
-            .padding(.horizontal)
-            .padding(.bottom)
     }
 }
 

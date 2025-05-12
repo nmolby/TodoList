@@ -28,7 +28,9 @@ struct ContentView: View {
         .overlay(alignment: .bottom) {
             if let errorString = viewModel.errorString {
                 ErrorView(errorString: errorString)
-                    .transition(.asymmetric(insertion: .push(from: .bottom), removal: .push(from: .top)) )
+                    .transition(.asymmetric(insertion: .push(from: .bottom), removal: .push(from: .top)))
+                    .padding(.horizontal)
+                    .padding(.bottom)
             }
         }
         .sheet(item: $viewModel.navigationRouter.sheetDisplayed) { sheet in
