@@ -22,18 +22,15 @@ class TodoItemRepository: TodoItemRepositoryProtocol {
     }
     
     @MainActor func loadInitialItems() throws {
-        let context = coreDataManager.container.viewContext
-        
         let request = NSFetchRequest<TodoItemEntity>(entityName: .todoItem)
-        todoItems = try context.fetch(request).map { entity in
+        
+        todoItems = try coreDataManager.fetch(request).map { entity in
             entity.toTodoItem()
         }
     }
     
     func refreshTodoItems() async throws {
-        let context = coreDataManager.container.viewContext
-        
-        todoItems = try await context.perform {
+        todoItems = try await coreDataManager.perform { context in
             let request = NSFetchRequest<TodoItemEntity>(entityName: .todoItem)
             return try context.fetch(request).map { entity in
                 entity.toTodoItem()
@@ -42,9 +39,7 @@ class TodoItemRepository: TodoItemRepositoryProtocol {
     }
     
     func deleteTodoItems(_ items: [TodoItem]) async throws {
-        let context = coreDataManager.container.viewContext
-        
-        try await context.perform {
+        try await coreDataManager.perform { context in
             let fetchRequest = TodoItemEntity.fetchRequest() as NSFetchRequest<NSFetchRequestResult>
             
             fetchRequest.predicate = NSPredicate(format: "id IN %@", items.map(\.id))
@@ -58,9 +53,7 @@ class TodoItemRepository: TodoItemRepositoryProtocol {
     }
     
     func addTodo(_ item: TodoItem) async throws {
-        let context = coreDataManager.container.viewContext
-
-        try await context.perform {
+        try await coreDataManager.perform { context in
             _ = TodoItemEntity(
                 context: context,
                 name: item.name,
@@ -76,11 +69,9 @@ class TodoItemRepository: TodoItemRepositoryProtocol {
     }
     
     @MainActor func loadSampleTodos() async throws {
-        let context = coreDataManager.container.viewContext
-
         let todoDtos: [TodoItemDTO] = try await apiClient.request(.fetchTodos)
         
-        try await context.perform {
+        try await coreDataManager.perform { context in
             // Remove Todo's that will be replaced
             let fetchRequest = TodoItemEntity.fetchRequest() as NSFetchRequest<NSFetchRequestResult>
             

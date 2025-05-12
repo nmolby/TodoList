@@ -19,7 +19,7 @@ import Foundation
         self.errorStore = errorStore
     }
     
-    func save() async {
+    func save() async throws {
         submitting = true
         defer {
             submitting = false
@@ -30,6 +30,7 @@ import Foundation
             try await todoItemRepository.addTodo(itemToSave)
         } catch {
             errorStore.errorString = "Error saving your todo. Please try again later."
+            throw error
         }
     }
 }

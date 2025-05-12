@@ -35,17 +35,33 @@ struct CoreDataManager {
         
         container.loadPersistentStores(completionHandler: { (storeDescription, error) in
             if let error = error as NSError? {
-                //TODO: do something with error
-                fatalError("Unresolved error \(error), \(error.userInfo)")
+                // In a real app, execute some sort of logging
+                // And potentially force user to "failed to load" screen
+                print(error)
             }
         })
         container.viewContext.automaticallyMergesChangesFromParent = true
+    }
+    
+    func perform<T>(useBackgroundContext: Bool = false, _ block: @escaping (NSManagedObjectContext) throws -> T) async rethrows -> T {
+        
+        let context = useBackgroundContext ? container.newBackgroundContext() : container.viewContext
+        
+        return try await context.perform {
+            try block(context)
+        }
+    }
+    
+    func fetch<T>(useBackgroundContext: Bool = false, _ request: NSFetchRequest<T>) throws -> [T] where T : NSFetchRequestResult {
+        let context = useBackgroundContext ? container.newBackgroundContext() : container.viewContext
+
+        return try context.fetch(request)
     }
 }
 
 
 extension CoreDataManager {
-    @discardableResult static func setPreviewItems(context: NSManagedObjectContext) -> [TodoItemEntity] {
+    @discardableResult private static func setPreviewItems(context: NSManagedObjectContext) -> [TodoItemEntity] {
         [
             TodoItemEntity(context: context, name: "Feed the dog", creationDate: Date(), editDate: nil),
             TodoItemEntity(context: context, name: "Take out trash", creationDate: Date().addingTimeInterval(-3600), editDate: Date().addingTimeInterval(-1800)),

@@ -39,7 +39,7 @@ struct AddTodoItemView: View {
                     } else {
                         Button("Save") {
                             Task {
-                                await viewModel.save()
+                                try await viewModel.save()
                                 
                                 dismiss()
                             }
